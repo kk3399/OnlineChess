@@ -1,0 +1,5 @@
+module.exports = {
+  app_id: "129571",
+  key: "f15793d4e32fa4954644",
+  secret: "41b9393148f876c2664f"
+}
