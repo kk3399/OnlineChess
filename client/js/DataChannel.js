@@ -51,7 +51,7 @@
             for (var extra in extras) {
                 self[extra] = extras[extra];
             }
-            self.direction = self.direction || 'many-to-many';
+            self.direction = self.direction || 'one-to-one';
             if (self.userid) window.userid = self.userid;
 
             if (!self.openSignalingChannel) {

@@ -6,7 +6,21 @@ var datachannel = new DataChannel();
 datachannel.userid = window.userid;
 
 // Open a connection to Pusher
-var pusher = new Pusher("f15793d4e32fa4954644");
+//var pusher = new Pusher("f15793d4e32fa4954644");
+
+var APP_KEY = 'f15793d4e32fa4954644';
+var APP_SECRET = '41b9393148f876c2664f';
+var USER_ID = '129571';
+
+var pusher = new Pusher(APP_KEY, {
+    authTransport: 'client',
+    clientAuth: {
+      key: APP_KEY,
+      secret: APP_SECRET,
+      user_id: USER_ID,
+      user_info: {}
+    }
+});
 
 // Storage of Pusher connection socket ID
 var socketId;
@@ -34,11 +48,12 @@ pusher.connection.bind("state_change", function(states) {
 // https://github.com/muaz-khan/WebRTC-Experiment/blob/master/Signaling.md
 datachannel.openSignalingChannel = function(config) {
   var channel = config.channel || this.channel || "default-channel";
+  //channel = 'private-' + channel;
   var xhrErrorCount = 0;
   
   var socket = {
     send: function(message) {
-      $.ajax({
+     /*  $.ajax({
         type: "POST",
         url: "/message", // Node.js & Ruby (Sinatra)
         // url: "_servers/php/message.php", // PHP
@@ -61,13 +76,23 @@ datachannel.openSignalingChannel = function(config) {
             datachannel.transmitRoomOnce = true;
           }
         }
-      });
+      }); */
+	  
+	  pusherChannel.trigger('client-message', message, socketId);
+	  //datachannel.transmitRoomOnce = true;
     },
-    channel: channel
-  };
+    channel: (channel.indexOf('private-') < 0) ? ('private-' + channel) : channel
 
+  };
+  
+
+  if (channel.indexOf('private-') <=0)	channel = 'private-' + channel;
+  
   // Subscribe to Pusher signalling channel
   var pusherChannel = pusher.subscribe(channel);
+  
+  
+	  
 
   // Call callback on successful connection to Pusher signalling channel
   pusherChannel.bind("pusher:subscription_succeeded", function() {
@@ -75,7 +100,7 @@ datachannel.openSignalingChannel = function(config) {
   });
 
   // Proxy Pusher signaller messages to DataChannel
-  pusherChannel.bind("message", function(message) {
+  pusherChannel.bind("client-message", function(message) {
     config.onmessage(message);
   });
 
@@ -89,7 +114,8 @@ var onCreateChannel = function() {
     console.log("No channel name given");
     return;
   }
-
+  
+  channelName = (channelName.indexOf('private-') < 0) ? ('private-' + channelName) : channelName; 
   disableConnectInput();
 
   datachannel.open(channelName);
@@ -102,7 +128,8 @@ var onJoinChannel = function() {
     console.log("No channel name given");
     return;
   }
-
+    
+  channelName = (channelName.indexOf('private-') < 0) ? ('private-' + channelName) : channelName;
   disableConnectInput();
 
   // Search for existing data channels
